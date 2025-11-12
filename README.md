@@ -1,7 +1,7 @@
 # libcal-times
 These scripts work with the library hours widgets provided in Springshare's LibCal system. Created with claude.ai, the scripts reformat the times displayed on web pages to match my university's editorial style, which is based on the AP Stylebook. 
 
-We use these widgets on our website (www.smu.edu/libraries): Today's Hours, Daily Hours, Weekly Grid View, Monthly Calendar View. The added script for the Monthly Calendar View should be placed in the page code AFTER the LibCal script. The added script used with the other widgets should be placed BEFORE the LibCal script. Following are detailed descriptions of what the two scripts do.
+We use these widgets on our website (www.smu.edu/libraries): Today's Hours, Daily Hours, Weekly Grid View, Monthly Calendar View. The added script for the Monthly Calendar View should be placed in the page code AFTER the LibCal script. The added script for the other widgets should be placed BEFORE the LibCal script. Following are detailed descriptions of what the two scripts do.
  
 Time Formatting Script for Daily Hours, Weekly Hours, and Upcoming Events
 This script should be placed BEFORE loading hours_grid.js, hours_today.js, api_hours_today.php, or api_events.php.
