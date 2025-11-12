@@ -4,11 +4,11 @@ These scripts work with the library hours widgets provided in Springshare's LibC
 We use these widgets on our website (www.smu.edu/libraries): Today's Hours, Daily Hours, Weekly Grid View, Monthly Calendar View. The added script for the Monthly Calendar View should be placed in the page code AFTER the LibCal script. The added script for the other widgets should be placed BEFORE the LibCal script. Following are detailed descriptions of what the two scripts do.
 
 ## Time Formatting Script for Monthly Calendar Display
-This script should be placed AFTER loading hours_month.js.
+This script should be placed AFTER loading hours_month.js.  
 
-What it formats:
-*Elements with class .s-lc-time (time ranges in monthly calendar)
-*Elements with class .s-lc-timetxt (special text like "Opens at" and "Closes at")
+What it formats:  
+* Elements with class .s-lc-time (time ranges in monthly calendar)
+* Elements with class .s-lc-timetxt (special text like "Opens at" and "Closes at")
 
 Formatting rules applied:
 1.	Normalizes dashes in time ranges - Removes spaces around dashes initially
