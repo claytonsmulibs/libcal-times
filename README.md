@@ -4,11 +4,13 @@ These scripts work with the library hours widgets provided in Springshare's LibC
 We use these widgets on our website (www.smu.edu/libraries): Today's Hours, Daily Hours, Weekly Grid View, Monthly Calendar View. The added script for the Monthly Calendar View should be placed in the page code AFTER the LibCal script. The added script used with the other widgets should be placed BEFORE the LibCal script. Following are detailed descriptions of what the two scripts do.
  
 Time Formatting Script for Daily Hours, Weekly Hours, and Upcoming Events
+
 This script should be placed BEFORE loading hours_grid.js, hours_today.js, api_hours_today.php, or api_events.php.
+
 What it formats:
-•	Elements with class .s-lc-time (weekly hours grid)
-•	Elements with class .event-daytime (event listings)
-•	Elements with class .s-lc-whw-head-date (date headers in weekly grid)
+Elements with class .s-lc-time (weekly hours grid)
+Elements with class .event-daytime (event listings)
+Elements with class .s-lc-whw-head-date (date headers in weekly grid)
 
 Formatting rules applied:
 1.	Removes leading zeros from dates - "Nov 05" → "Nov 5"
@@ -22,10 +24,10 @@ Formatting rules applied:
 9.	Properly formats ranges with Noon and Midnight - "10 a.m.–Noon", "Midnight–5 a.m."
 
 How it works:
-•	Processes content on page load with multiple retries (100ms, 500ms, 1000ms, 2000ms)
-•	Intercepts dynamic content insertion via innerHTML
-•	Monitors for navigation clicks and processes content after navigation
-•	Uses MutationObserver to watch for DOM changes
-•	Automatically reformats new content as it appears
+Processes content on page load with multiple retries (100ms, 500ms, 1000ms, 2000ms)
+Intercepts dynamic content insertion via innerHTML
+Monitors for navigation clicks and processes content after navigation
+Uses MutationObserver to watch for DOM changes
+Automatically reformats new content as it appears
 
 
