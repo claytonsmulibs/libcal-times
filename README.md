@@ -23,10 +23,10 @@ Formatting rules applied:
 9.	Properly formats ranges with Noon and Midnight - "10 a.m.–Noon", "Midnight–5 a.m."
 
 How it works:
-Processes content on page load with multiple retries (100ms, 500ms, 1000ms, 2000ms)
-Intercepts dynamic content insertion via innerHTML
-Monitors for navigation clicks and processes content after navigation
-Uses MutationObserver to watch for DOM changes
-Automatically reformats new content as it appears
+* Processes content on page load with multiple retries (100ms, 500ms, 1000ms, 2000ms)
+* Intercepts dynamic content insertion via innerHTML
+* Monitors for navigation clicks and processes content after navigation
+* Uses MutationObserver to watch for DOM changes
+* Automatically reformats new content as it appears
 
 
