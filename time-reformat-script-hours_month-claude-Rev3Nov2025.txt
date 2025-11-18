@@ -1,0 +1,142 @@
+<script>
+// Place this AFTER loading hours_month.js
+
+(function() {
+  // Format function
+  function formatTime(str) {
+    if (!str || typeof str !== 'string') return str;
+    
+    let formatted = str;
+    
+    // Step 1: Normalize dashes in time ranges - remove spaces around dashes between times
+    // Match: "9:00 a.m. – 7:00 p.m." and make it "9:00 a.m.–7:00 p.m."
+    formatted = formatted
+      .replace(/(\d+(?::\d+)?)\s+(a\.m\.|p\.m\.)\s*[–—-]\s*(\d+(?::\d+)?)\s+(a\.m\.|p\.m\.)/gi, '$1 $2–$3 $4')
+      .replace(/(\d+(?::\d+)?)\s+(a\.m\.|p\.m\.)\s*[–—-]\s*(Midnight|Noon)/gi, '$1 $2–$3')
+      .replace(/(Midnight|Noon)\s*[–—-]\s*(\d+(?::\d+)?)\s+(a\.m\.|p\.m\.)/gi, '$1–$2 $3');
+    
+    // Step 2: Standardize all am/pm to have spaces and periods
+    formatted = formatted
+      .replace(/(\d+):(\d+)\s*am\b/gi, '$1:$2 a.m.')
+      .replace(/(\d+):(\d+)\s*pm\b/gi, '$1:$2 p.m.')
+      .replace(/(\d+)\s*am\b/gi, '$1 a.m.')
+      .replace(/(\d+)\s*pm\b/gi, '$1 p.m.')
+      // Also handle "Opens at" and "Closes at" phrases
+      .replace(/Opens at\s+(\d+(?::\d+)?)\s*am\b/gi, 'Opens at $1 a.m.')
+      .replace(/Opens at\s+(\d+(?::\d+)?)\s*pm\b/gi, 'Opens at $1 p.m.')
+      .replace(/Closes at\s+(\d+(?::\d+)?)\s*am\b/gi, 'Closes at $1 a.m.')
+      .replace(/Closes at\s+(\d+(?::\d+)?)\s*pm\b/gi, 'Closes at $1 p.m.');
+    
+    // Step 3: Replace 12 a.m. with "Midnight" and 12 p.m. with "Noon"
+    // Do this BEFORE removing redundant periods
+    formatted = formatted
+      .replace(/\b12(?::00)?\s+a\.m\./gi, 'Midnight')
+      .replace(/\b12(?::00)?\s+p\.m\./gi, 'Noon');
+    
+    // Step 4: Remove redundant a.m./p.m. in same-period ranges
+    // But preserve Midnight and Noon
+    // "8 a.m. – 11 a.m." becomes "8–11 a.m."
+    formatted = formatted
+      .replace(/(\d+(?::\d+)?)\s+a\.m\.\s*(–|—|-|â€"|Ã¢â‚¬")\s*(Midnight)/gi, '$1 a.m.–$3')
+      .replace(/(Midnight)\s*(–|—|-|â€"|Ã¢â‚¬")\s*(\d+(?::\d+)?)\s+a\.m\./gi, '$1–$3 a.m.')
+      .replace(/(\d+(?::\d+)?)\s+p\.m\.\s*(–|—|-|â€"|Ã¢â‚¬")\s*(Noon)/gi, '$1 p.m.–$3')
+      .replace(/(Noon)\s*(–|—|-|â€"|Ã¢â‚¬")\s*(\d+(?::\d+)?)\s+p\.m\./gi, '$1–$3 p.m.')
+      .replace(/(\d+(?::\d+)?)\s+a\.m\.\s*(–|—|-|â€"|Ã¢â‚¬")\s*(\d+(?::\d+)?)\s+a\.m\./gi, '$1–$3 a.m.')
+      .replace(/(\d+(?::\d+)?)\s+p\.m\.\s*(–|—|-|â€"|Ã¢â‚¬")\s*(\d+(?::\d+)?)\s+p\.m\./gi, '$1–$3 p.m.')
+      // Also remove spaces in cross-period ranges (a.m. to p.m.)
+      .replace(/(\d+(?::\d+)?)\s+a\.m\.\s*(–|—|-|â€"|Ã¢â‚¬")\s*(\d+(?::\d+)?)\s+p\.m\./gi, '$1 a.m.–$3 p.m.')
+      .replace(/(\d+(?::\d+)?)\s+p\.m\.\s*(–|—|-|â€"|Ã¢â‚¬")\s*(\d+(?::\d+)?)\s+a\.m\./gi, '$1 p.m.–$3 a.m.');
+    
+    return formatted;
+  }
+  
+  // Function to process all time spans
+  function processTimeSpans() {
+    // Process both .s-lc-time and .s-lc-timetxt spans
+    const timeSpans = document.querySelectorAll('.s-lc-time, .s-lc-timetxt');
+    
+    timeSpans.forEach(span => {
+      // Process all text nodes within the span, including across line breaks
+      const walker = document.createTreeWalker(
+        span,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      
+      let node;
+      while (node = walker.nextNode()) {
+        const originalText = node.textContent;
+        const formattedText = formatTime(originalText);
+        
+        if (originalText !== formattedText) {
+          node.textContent = formattedText;
+        }
+      }
+    });
+  }
+  
+  // Run after page loads with multiple attempts
+  function runWithRetries() {
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    const interval = setInterval(function() {
+      attempts++;
+      const timeSpans = document.querySelectorAll('.s-lc-time');
+      
+      if (timeSpans.length > 0 || attempts >= maxAttempts) {
+        processTimeSpans();
+        
+        if (attempts >= 3) {
+          clearInterval(interval);
+        }
+      }
+    }, 500);
+  }
+  
+  // Run after page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runWithRetries);
+  } else {
+    runWithRetries();
+  }
+  
+  // Also observe for dynamic changes
+  const observer = new MutationObserver(function(mutations) {
+    let shouldProcess = false;
+    
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1) {
+          if (node.classList && (node.classList.contains('s-lc-time') || node.classList.contains('s-lc-timetxt'))) {
+            shouldProcess = true;
+          } else if (node.querySelector && (node.querySelector('.s-lc-time') || node.querySelector('.s-lc-timetxt'))) {
+            shouldProcess = true;
+          }
+        }
+      });
+    });
+    
+    if (shouldProcess) {
+      setTimeout(processTimeSpans, 100);
+    }
+  });
+  
+  // Start observing
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  } else {
+    setTimeout(function() {
+      if (document.body) {
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+    }, 100);
+  }
+})();
+</script>

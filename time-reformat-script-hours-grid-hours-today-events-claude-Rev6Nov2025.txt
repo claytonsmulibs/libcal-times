@@ -1,0 +1,139 @@
+<script>
+// Place this BEFORE loading hours_grid.js, hours_today.js, api_hours_today.php, or api_events.php
+
+(function() {
+  // Format function
+  function formatTime(str) {
+    if (!str || typeof str !== 'string') return str;
+    
+    // First, remove leading zeros from dates (e.g., "Nov 05" → "Nov 5")
+    let formatted = str
+      .replace(/(\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+)0(\d)/g, '$1$2');
+    
+    // Then add spaces and periods to am/pm
+    formatted = formatted
+      .replace(/(\d+)(\s*)am\b/gi, '$1 a.m.')
+      .replace(/(\d+)(\s*)pm\b/gi, '$1 p.m.')
+      .replace(/(\d+):(\d+)(\s*)am\b/gi, '$1:$2 a.m.')
+      .replace(/(\d+):(\d+)(\s*)pm\b/gi, '$1:$2 p.m.');
+    
+    // Replace 12:00 and 12 with Noon/Midnight early (before range processing)
+    formatted = formatted
+      .replace(/\b12:00\s+a\.m\./gi, 'Midnight')
+      .replace(/\b12:00\s+p\.m\./gi, 'Noon')
+      .replace(/\b12\s+a\.m\./gi, 'Midnight')
+      .replace(/\b12\s+p\.m\./gi, 'Noon');
+    
+    // Remove :00 from times on the hour (but not from 12:00 since those are now Midnight/Noon)
+    formatted = formatted
+      .replace(/\b(\d+):00\s+(a\.m\.|p\.m\.)/gi, '$1 $2');
+    
+    // Then remove spaces around dashes and redundant a.m./p.m. in ranges
+    // "1 p.m. – 5 p.m." becomes "1–5 p.m."
+    // Also handle Midnight and Noon in ranges
+    formatted = formatted
+      .replace(/(\d+(?::\d+)?)\s+a\.m\.\s*[–—-]\s*(Midnight)/gi, '$1 a.m.–$2')
+      .replace(/(Midnight)\s*[–—-]\s*(\d+(?::\d+)?)\s+a\.m\./gi, '$1–$2 a.m.')
+      .replace(/(\d+(?::\d+)?)\s+a\.m\.\s*[–—-]\s*(Noon)/gi, '$1 a.m.–$2')
+      .replace(/(\d+(?::\d+)?)\s+p\.m\.\s*[–—-]\s*(Noon)/gi, '$1 p.m.–$2')
+      .replace(/(Noon)\s*[–—-]\s*(\d+(?::\d+)?)\s+p\.m\./gi, '$1–$2 p.m.')
+      .replace(/(\d+(?::\d+)?)\s+a\.m\.\s*[–—-]\s*(\d+(?::\d+)?)\s+a\.m\./gi, '$1–$2 a.m.')
+      .replace(/(\d+(?::\d+)?)\s+p\.m\.\s*[–—-]\s*(\d+(?::\d+)?)\s+p\.m\./gi, '$1–$2 p.m.')
+      // Also handle cross-period ranges (keep both period designations)
+      .replace(/(\d+(?::\d+)?)\s+a\.m\.\s*[–—-]\s*(\d+(?::\d+)?)\s+p\.m\./gi, '$1 a.m.–$2 p.m.')
+      .replace(/(\d+(?::\d+)?)\s+p\.m\.\s*[–—-]\s*(\d+(?::\d+)?)\s+a\.m\./gi, '$1 p.m.–$2 a.m.');
+    
+    return formatted;
+  }
+  
+  // Function to process all time spans
+  function processTimeSpans() {
+    // Process .s-lc-time, .event-daytime, and .s-lc-whw-head-date elements
+    const timeSpans = document.querySelectorAll('.s-lc-time, .event-daytime, .s-lc-whw-head-date');
+    
+    timeSpans.forEach(span => {
+      const originalText = span.textContent;
+      const formattedText = formatTime(originalText);
+      
+      if (originalText !== formattedText) {
+        span.textContent = formattedText;
+      }
+    });
+  }
+  
+  // Intercept innerHTML to format times as they're inserted
+  const originalInnerHTMLDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+  Object.defineProperty(Element.prototype, 'innerHTML', {
+    set: function(value) {
+      const formatted = formatTime(value);
+      originalInnerHTMLDesc.set.call(this, formatted);
+    },
+    get: function() {
+      return originalInnerHTMLDesc.get.call(this);
+    }
+  });
+  
+  // Run after page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(processTimeSpans, 100);
+      setTimeout(processTimeSpans, 500);
+      setTimeout(processTimeSpans, 1000);
+      setTimeout(processTimeSpans, 2000);
+    });
+  } else {
+    setTimeout(processTimeSpans, 100);
+    setTimeout(processTimeSpans, 500);
+    setTimeout(processTimeSpans, 1000);
+    setTimeout(processTimeSpans, 2000);
+  }
+  
+  // Listen for clicks on navigation buttons
+  document.addEventListener('click', function(e) {
+    const target = e.target;
+    // Check if click is on or within a navigation element
+    if (target.closest('.s-lc-w-nav, .s-lc-nav, button, a[href*="week"], a[href*="date"]')) {
+      // Process times after a short delay to let content load
+      setTimeout(processTimeSpans, 300);
+      setTimeout(processTimeSpans, 600);
+      setTimeout(processTimeSpans, 1000);
+    }
+  }, true);
+  
+  // Observe for any DOM changes
+  const observer = new MutationObserver(function(mutations) {
+    let shouldProcess = false;
+    
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1) {
+          if (node.classList && (node.classList.contains('s-lc-time') || node.classList.contains('event-daytime') || node.classList.contains('s-lc-whw-head-date'))) {
+            shouldProcess = true;
+          } else if (node.querySelector && (node.querySelector('.s-lc-time') || node.querySelector('.event-daytime') || node.querySelector('.s-lc-whw-head-date'))) {
+            shouldProcess = true;
+          }
+        }
+      });
+      
+      // Also check if content changed in existing elements
+      if (mutation.type === 'childList' && mutation.target.querySelector) {
+        if (mutation.target.querySelector('.s-lc-time') || mutation.target.querySelector('.event-daytime') || mutation.target.querySelector('.s-lc-whw-head-date')) {
+          shouldProcess = true;
+        }
+      }
+    });
+    
+    if (shouldProcess) {
+      setTimeout(processTimeSpans, 100);
+    }
+  });
+  
+  // Start observing
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+})();
+</script>
